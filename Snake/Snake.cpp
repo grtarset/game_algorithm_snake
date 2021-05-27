@@ -20,66 +20,68 @@ void delay(int ms)
 	while (clock() < c);
 }
 
+void restart(bool& left, bool& right, bool& up, bool& down, bool& check_press);
+
 void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_press) {
+	random_device rd;
+	mt19937 mersenne(rd()); // инициализируем Вихрь Мерсенна случайным стартовым числом 
+
 	//ініціалізація масиву ігрового поля та його розмірів
 	char space[26][26];
 	int size_h = sizeof(space) / sizeof(space[0]) - 1;
 	int size_w = sizeof(space[size_h]) / sizeof(space[size_h][0]) - 1;
 
-	int xFood = 0, yFood = 0; //ініціалізуєм координати їжі
-	bool check = true;
-	bool check1 = false;
-
-	std::random_device rd;
-	std::mt19937 mersenne(rd()); // инициализируем Вихрь Мерсенна случайным стартовым числом 
+	int xFood = 0, yFood = 0;						//ініціалізуєм координати їжі
+	bool check_eaten = true;						//перевірку з'їдження згенерованої їжі змійкою
+	bool check_collision_generation_food = false;	//та перевірку при генерації їжі колізії з тілом змійки
 
 	int result = 0;
 
 	vector<snake_struct> snake;
 	snake_struct buffer1;
 	snake_struct buffer2;
-	snake.resize(2);
 
-	snake.at(0).x = 4;
-	snake.at(0).y = 4;
+	snake.resize(2);
+	snake.at(0).x = size_h / 2;
+	snake.at(0).y = size_w / 2;
 
 	while (true) {
 		//Міняєм координати головки змійки
-			if (left && snake.at(0).y > 0) --snake.at(0).y;
-			else if (right && snake.at(0).y < size_w - 1) ++snake.at(0).y;
-			else if (up && snake.at(0).x > 0) --snake.at(0).x;
-			else if (down && snake.at(0).x < size_h - 1) ++snake.at(0).x;
-			check_press = false;
+		if (left && snake.at(0).y > 0) --snake.at(0).y;
+		else if (right && snake.at(0).y < size_w - 1) ++snake.at(0).y;
+		else if (up && snake.at(0).x > 0) --snake.at(0).x;
+		else if (down && snake.at(0).x < size_h - 1) ++snake.at(0).x;
+		check_press = false;
 
 		//Надаєм рандомні координати їжі
-		if (check) {
+		if (check_eaten) {
 			do {
 				xFood = 1 + mersenne() % (size_h - 2);
 				yFood = 1 + mersenne() % (size_w - 2);
 				for (int i = 0; i < snake.size(); i++) 
 					if (snake.at(i).x == xFood && snake.at(i).y != yFood)
-						check1 = true;
-			} while (!check1);
-			check1 = false;
+						check_collision_generation_food = true;
+			} while (!check_collision_generation_food);
+			check_collision_generation_food = false;
 		}
 
 		//Перевіряємо чи зїджено їжу
 		if (snake.at(0).x == xFood && snake.at(0).y == yFood)
 		{
-			check = true;
+			check_eaten = true;
 			result++;
 			snake.resize(snake.size() + 1);
 
 		}
 		else
-			check = false;
+			check_eaten = false;
 
 		//переміщаєм координати тіла змійки
 		for (int i = 0; i < snake.size() - 1; i++)
 		{
-			if (i == 0)
-			{
-				buffer1 = snake.at(static_cast<__int64>(i) + 1);
+			if (i == 0)													//Вибравши комірку, записуємо її наступну в буфер,
+			{															//а тоді вибрану записуємо в наступну
+				buffer1 = snake.at(static_cast<__int64>(i) + 1);		//з буфера отримуємо старе значення перезаписаної
 				snake.at(static_cast<__int64>(i) + 1) = snake.at(i);
 			}
 			else
@@ -118,20 +120,23 @@ void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_pre
 			cout << endl;
 		}
 
+		//Перевіряєм на колізію
 		for (int it = 0; it < snake.size(); it++) 
 		{
 			if (snake.at(it).x == 0 || snake.at(it).x == size_h - 1
 				|| snake.at(it).y == 0 || snake.at(it).y == size_w - 1)
 			{
 				cout << "GAME OVER!" << endl << "Result: " << result << endl;
-				system("pause");
+				delay(2000);
+				restart(ref(left), ref(right), ref(up), ref(down), ref(check_press));
 			}
 			if (snake.size() > 2)
 			for (int itt = 2; itt < snake.size(); itt++) {
 				if (snake.at(0).x == snake.at(itt).x && snake.at(0).y == snake.at(itt).y) 
 				{
 					cout << "GAME OVER!" << endl << "Result: " << result << endl;
-					system("pause");
+					delay(2000);
+					restart(ref(left), ref(right), ref(up), ref(down), ref(check_press));
 				}
 			}
 		}
@@ -140,6 +145,11 @@ void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_pre
 		delay(70);
 		system("cls");
 	}
+}
+
+void restart(bool& left, bool& right, bool& up, bool& down, bool& check_press) {
+	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press));	//запускаєм основний потік з інферфейсом та алгоритмом
+	runInterface.join();
 }
 
 //Зчитуєм натискання клавіші в іншому потоці
@@ -184,9 +194,9 @@ void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press
 
 int main()
 {
-	bool left = false, right = false, up = false, down = true, check_press = false;
-	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press));
-	thread runControl(runControl, ref(left), ref(right), ref(up), ref(down), ref(check_press));
+	bool left = false, right = false, up = false, down = true, check_press = false;					//створюєм перевірки для фіксації напрямку руху змійки
+	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press));	//запускаєм основний потік з інферфейсом та алгоритмом
+	thread runControl(runControl, ref(left), ref(right), ref(up), ref(down), ref(check_press));		//запускаєм потік з керуванням змійкою за допомогою клавіатури
 	runControl.join();
 	runInterface.join();
 
