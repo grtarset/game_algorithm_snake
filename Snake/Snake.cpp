@@ -1,9 +1,10 @@
 ﻿#include <iostream>
 #include <string>
-#include <conio.h>
 #include <random>
 #include <thread>
 #include <vector>
+
+#include "control.h"
 
 using namespace std;
 
@@ -20,9 +21,9 @@ void delay(int ms)
 	while (clock() < c);
 }
 
-void restart(bool& left, bool& right, bool& up, bool& down, bool& check_press);
+void restart(bool& left, bool& right, bool& up, bool& down, bool& check_press, bool& check_restart);
 
-void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_press) {
+void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_press, bool& check_restart) {
 	random_device rd;
 	mt19937 mersenne(rd()); // инициализируем Вихрь Мерсенна случайным стартовым числом 
 
@@ -127,16 +128,30 @@ void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_pre
 				|| snake.at(it).y == 0 || snake.at(it).y == size_w - 1)
 			{
 				cout << "GAME OVER!" << endl << "Result: " << result << endl;
+				cout << "Restart? press 'r' (wait 2 sec): ";
 				delay(2000);
-				restart(ref(left), ref(right), ref(up), ref(down), ref(check_press));
+				if (check_restart)
+				{
+					check_restart = false;
+					check_press = false;
+					restart(ref(left), ref(right), ref(up), ref(down), ref(check_press), ref(check_restart));
+				}
+				return;
 			}
 			if (snake.size() > 2)
 			for (int itt = 2; itt < snake.size(); itt++) {
 				if (snake.at(0).x == snake.at(itt).x && snake.at(0).y == snake.at(itt).y) 
 				{
 					cout << "GAME OVER!" << endl << "Result: " << result << endl;
+					cout << "Restart? press 'r' (wait 2 sec): ";
 					delay(2000);
-					restart(ref(left), ref(right), ref(up), ref(down), ref(check_press));
+					if (check_restart)
+					{
+						check_restart = false;
+						check_press = false;
+						restart(ref(left), ref(right), ref(up), ref(down), ref(check_press), ref (check_restart));
+					}
+					return;
 				}
 			}
 		}
@@ -147,56 +162,16 @@ void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_pre
 	}
 }
 
-void restart(bool& left, bool& right, bool& up, bool& down, bool& check_press) {
-	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press));	//запускаєм основний потік з інферфейсом та алгоритмом
+void restart(bool& left, bool& right, bool& up, bool& down, bool& check_press, bool& check_restart) {
+	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press), ref(check_restart));	//запускаєм основний потік з інферфейсом та алгоритмом
 	runInterface.join();
-}
-
-//Зчитуєм натискання клавіші в іншому потоці
-void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press) {
-	char ch;
-	while(true) {
-		ch = _getch();
-		if (!down && ch == 'w' && !check_press)
-		{
-			left = false;
-			right = false;
-			up = true;
-			down = false;
-			check_press = true;
-		}
-		else if (!up && ch == 's' && !check_press)
-		{
-			left = false;
-			right = false;
-			up = false;
-			down = true;
-			check_press = true;
-		}
-		else if (!left && ch == 'd' && !check_press)
-		{
-			left = false;
-			right = true;
-			up = false;
-			down = false;
-			check_press = true;
-		}
-		else if (!right && ch == 'a' && !check_press)
-		{
-			left = true;
-			right = false;
-			up = false;
-			down = false;
-			check_press = true;
-		}
-	}
 }
 
 int main()
 {
-	bool left = false, right = false, up = false, down = true, check_press = false;					//створюєм перевірки для фіксації напрямку руху змійки
-	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press));	//запускаєм основний потік з інферфейсом та алгоритмом
-	thread runControl(runControl, ref(left), ref(right), ref(up), ref(down), ref(check_press));		//запускаєм потік з керуванням змійкою за допомогою клавіатури
+	bool left = false, right = false, up = false, down = true, check_press = false, check_restart = false;					//створюєм перевірки для фіксації напрямку руху змійки
+	thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press), ref(check_restart));	//запускаєм основний потік з інферфейсом та алгоритмом
+	thread runControl(runControl, ref(left), ref(right), ref(up), ref(down), ref(check_press), ref(check_restart));		//запускаєм потік з керуванням змійкою за допомогою клавіатури
 	runControl.join();
 	runInterface.join();
 
