@@ -1,11 +1,19 @@
 #include <conio.h>
 
-//«читуЇм натисканн€ клав≥ш≥ в ≥ншому потоц≥
-void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press, bool& check_restart) {
-	char ch;
-	while (true) {
-		ch = _getch();
-		if (!down && ch == 'w' && !check_press)
+#define UP_ARROW 72
+#define LEFT_ARROW 75
+#define DOWN_ARROW 80
+#define RIGHT_ARROW 77
+#define ENTER 13
+
+
+void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press, bool& check_gameover) {
+	int i;
+	while (!check_gameover) {
+		while (!_kbhit());
+		if (!check_gameover)
+			i = _getch();
+		if (!down && i == UP_ARROW && !check_press)
 		{
 			left = false;
 			right = false;
@@ -13,7 +21,7 @@ void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press
 			down = false;
 			check_press = true;
 		}
-		else if (!up && ch == 's' && !check_press)
+		else if (!up && i == DOWN_ARROW && !check_press)
 		{
 			left = false;
 			right = false;
@@ -21,7 +29,7 @@ void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press
 			down = true;
 			check_press = true;
 		}
-		else if (!left && ch == 'd' && !check_press)
+		else if (!left && i == RIGHT_ARROW && !check_press)
 		{
 			left = false;
 			right = true;
@@ -29,7 +37,7 @@ void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press
 			down = false;
 			check_press = true;
 		}
-		else if (!right && ch == 'a' && !check_press)
+		else if (!right && i == LEFT_ARROW && !check_press)
 		{
 			left = true;
 			right = false;
@@ -37,10 +45,6 @@ void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press
 			down = false;
 			check_press = true;
 		}
-		else if (ch == 'r')
-		{
-			check_restart = true;
-			check_press = true;
-		}
 	}
+	return;
 }
