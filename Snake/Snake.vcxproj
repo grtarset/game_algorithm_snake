@@ -140,10 +140,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="control.cpp" />
-    <ClCompile Include="Snake.cpp" />
+    <ClCompile Include="interface.cpp" />
+    <ClCompile Include="app.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="control.h" />
+    <ClInclude Include="interface.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
