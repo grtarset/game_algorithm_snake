@@ -52,7 +52,7 @@ void runControl(bool& left, bool& right, bool& up, bool& down, bool& check_press
 		}
 		else if (i == ENTER)
 		{
-			thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press), ref(check_game_finish));
+			thread runInterface(runInterface, ref(left), ref(right), ref(up), ref(down), ref(check_press));
 			runInterface.detach();
 		}
 		else if (i == ESC)

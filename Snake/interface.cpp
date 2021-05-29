@@ -14,7 +14,7 @@ struct snake_struct
 	int y;
 };
 
-void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_press, bool& check_game_finish) {
+void runInterface(bool& left, bool& right, bool& up, bool& down, bool& check_press) {
 	random_device rd;
 	mt19937 mersenne(rd()); // инициализируем Вихрь Мерсенна случайным стартовым числом 
 
